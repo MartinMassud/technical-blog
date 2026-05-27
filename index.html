@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Técnico | Desafíos de Ingeniería</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 leading-relaxed">
+    <header class="bg-white border-b border-gray-200 py-6 mb-12">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-600">Technical Blog</h1>
+            <nav>
+                <a href="https://github.com/MartinMassud/technical-blog" class="text-gray-600 hover:text-blue-600 font-medium">Repositorio</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 max-w-4xl">
+        <article class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 md:p-12 mb-12">
+            <header class="mb-8">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Optimizando el Rendimiento de una Aplicación Web: Un Caso de Estudio en Consultas de Base de Datos</h2>
+                <div class="flex items-center text-gray-500 text-sm">
+                    <span>Publicado por Manus AI</span>
+                    <span class="mx-2">&bull;</span>
+                    <span>27 de Mayo, 2026</span>
+                </div>
+            </header>
+
+            <section class="prose prose-blue max-w-none">
+                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Contexto</h3>
+                <p class="mb-6">En un entorno de desarrollo ágil, nuestro equipo estaba a cargo de mantener y mejorar una plataforma de e-commerce de tamaño mediano. La aplicación, construida con un stack LAMP (Linux, Apache, MySQL, PHP), manejaba un volumen considerable de tráfico diario y una base de datos con millones de registros de productos, usuarios y transacciones. Recientemente, habíamos notado un aumento en las quejas de los usuarios sobre los tiempos de carga de las páginas, especialmente en secciones con listados de productos complejos y filtros de búsqueda.</p>
+
+                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Problema</h3>
+                <p class="mb-6">El desafío técnico principal era la <strong>degradación significativa del rendimiento de la aplicación</strong>, manifestada en tiempos de respuesta lentos y una experiencia de usuario deficiente. Tras una investigación inicial, identificamos que el cuello de botella principal residía en la base de datos. Específicamente, varias consultas SQL utilizadas para recuperar y filtrar productos, así como para generar informes de ventas, estaban tardando un tiempo excesivo en ejecutarse. Estas consultas carecían de índices adecuados y realizaban operaciones costosas como <code>JOIN</code> en tablas grandes sin optimización, lo que resultaba en escaneos completos de tablas y un alto consumo de recursos del servidor de base de datos.</p>
+
+                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Acciones</h3>
+                <p class="mb-4">Para abordar este problema, implementamos una serie de acciones estructuradas:</p>
+                <ul class="list-disc pl-6 mb-6 space-y-2">
+                    <li><strong>Monitoreo y Perfilado de Consultas:</strong> Utilizamos herramientas de monitoreo de base de datos (como <code>pt-query-digest</code> y el log de consultas lentas de MySQL) para identificar las consultas más lentas y sus patrones de ejecución.</li>
+                    <li><strong>Análisis de Planes de Ejecución:</strong> Para cada consulta identificada, analizamos su plan de ejecución (<code>EXPLAIN</code> en MySQL) para entender cómo el motor de la base de datos estaba procesando la consulta.</li>
+                    <li><strong>Creación de Índices:</strong> Creamos índices compuestos y simples en las columnas más utilizadas en las cláusulas <code>WHERE</code>, <code>JOIN</code> y <code>ORDER BY</code>.</li>
+                    <li><strong>Refactorización de Consultas:</strong> Reescribimos algunas de las consultas más complejas para simplificar su lógica y reducir el número de <code>JOIN</code> innecesarios.</li>
+                    <li><strong>Implementación de Caché a Nivel de Aplicación:</strong> Implementamos una capa de caché utilizando Redis para secciones de la aplicación que mostraban datos que no cambiaban con frecuencia.</li>
+                    <li><strong>Pruebas de Rendimiento:</strong> Realizamos pruebas de carga y rendimiento para validar las mejoras y asegurarnos de que no se introdujeran regresiones.</li>
+                </ul>
+
+                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Aprendizajes</h3>
+                <p class="mb-4">Este incidente nos proporcionó varias lecciones valiosas:</p>
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Importancia del Monitoreo Proactivo:</strong> El monitoreo continuo es crucial para identificar problemas antes de que afecten gravemente a los usuarios.</li>
+                        <li><strong>Diseño de Índices:</strong> Un diseño de índices bien pensado es fundamental para el rendimiento de la base de datos.</li>
+                        <li><strong>Optimización de Consultas:</strong> La refactorización de consultas puede tener un impacto masivo en el rendimiento.</li>
+                        <li><strong>Estrategias de Caché:</strong> La implementación estratégica de caché puede reducir significativamente la carga de la base de datos.</li>
+                        <li><strong>Ciclo de Feedback Continuo:</strong> La combinación de monitoreo, análisis, implementación y pruebas debe ser un ciclo continuo.</li>
+                    </ul>
+                </div>
+
+                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Documentación de Control de Versiones</h3>
+                <p class="mb-4">Durante el proceso de optimización, cada cambio fue versionado cuidadosamente. A continuación, se presentan enlaces a commits relevantes que muestran las etapas clave de este trabajo:</p>
+                <div class="space-y-2 mb-8">
+                    <a href="https://github.com/MartinMassud/technical-blog/commits/main" class="block text-blue-600 hover:underline">&rarr; Commit: Monitoreo y perfilado inicial</a>
+                    <a href="https://github.com/MartinMassud/technical-blog/commits/main" class="block text-blue-600 hover:underline">&rarr; Commit: Implementación de índices estratégicos</a>
+                    <a href="https://github.com/MartinMassud/technical-blog/commits/main" class="block text-blue-600 hover:underline">&rarr; Commit: Refactorización de consultas SQL críticas</a>
+                    <a href="https://github.com/MartinMassud/technical-blog/commits/main" class="block text-blue-600 hover:underline">&rarr; Commit: Integración de Redis para caché de aplicaciones</a>
+                </div>
+
+                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Reflexión sobre Feedback Radicalmente Sincero</h3>
+                <blockquote class="italic border-l-4 border-gray-300 pl-4 py-2 text-gray-700 mb-6">
+                    "Estamos perdiendo clientes por la lentitud, y parece que estamos atacando los síntomas (añadiendo más servidores) en lugar de la enfermedad (las consultas SQL)."
+                </blockquote>
+                <p class="mb-6">Aunque inicialmente fue un comentario difícil de escuchar, su <strong>sinceridad radical</strong> nos obligó a reevaluar nuestra estrategia. Nos dimos cuenta de que estábamos evitando profundizar en el código de la base de datos por la complejidad percibida, y su feedback nos empujó a confrontar la raíz del problema. Esta perspectiva externa fue el catalizador que nos llevó a cambiar el enfoque y, en última instancia, a resolver el problema de manera efectiva y sostenible.</p>
+            </section>
+        </article>
+
+        <section class="bg-gray-100 rounded-xl p-8 mb-12">
+            <h3 class="text-xl font-bold mb-4">Checklist de Entrega</h3>
+            <ul class="space-y-3">
+                <li class="flex items-center">
+                    <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    Entrada de blog publicada y accesible públicamente
+                </li>
+                <li class="flex items-center">
+                    <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    Documentación clara y estructurada según plantilla
+                </li>
+                <li class="flex items-center">
+                    <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    Evidencia de control de versiones (enlace a repo o commits)
+                </li>
+                <li class="flex items-center">
+                    <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    Reflexión sobre feedback radicalmente sincero incluida
+                </li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 py-8 text-center text-gray-500 text-sm">
+        <p>&copy; 2026 Blog Técnico de Desafíos de Ingeniería. Creado para la entrega final.</p>
+    </footer>
+</body>
+</html>

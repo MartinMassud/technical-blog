@@ -8,6 +8,14 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        .prose h3 { font-size: 1.5rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: #1a202c; }
+        .prose p { margin-bottom: 1.5rem; }
+        .prose ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.5rem; }
+        .prose ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1.5rem; }
+        .prose li { margin-bottom: 0.5rem; }
+        .prose strong { font-weight: 700; }
+        .prose code { background-color: #e2e8f0; padding: 0.2em 0.4em; border-radius: 0.25rem; font-family: monospace; }
+        .prose blockquote { border-left: 4px solid #cbd5e0; padding-left: 1rem; font-style: italic; color: #4a5568; margin-bottom: 1.5rem; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 leading-relaxed">
@@ -32,49 +40,59 @@
             </header>
 
             <section class="prose prose-blue max-w-none">
-                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Contexto</h3>
-                <p class="mb-6">En un entorno de desarrollo ágil, nuestro equipo estaba a cargo de mantener y mejorar una plataforma de e-commerce de tamaño mediano. La aplicación, construida con un stack LAMP (Linux, Apache, MySQL, PHP), manejaba un volumen considerable de tráfico diario y una base de datos con millones de registros de productos, usuarios y transacciones. Recientemente, habíamos notado un aumento en las quejas de los usuarios sobre los tiempos de carga de las páginas, especialmente en secciones con listados de productos complejos y filtros de búsqueda.</p>
+                <h3>Contexto</h3>
+                <p>En un entorno de desarrollo ágil, nuestro equipo estaba a cargo de mantener y mejorar una plataforma de e-commerce de tamaño mediano. La aplicación, construida con un stack LAMP (Linux, Apache, MySQL, PHP), manejaba un volumen considerable de tráfico diario y una base de datos con millones de registros de productos, usuarios y transacciones. Recientemente, habíamos notado un aumento en las quejas de los usuarios sobre los tiempos de carga de las páginas, especialmente en secciones con listados de productos complejos y filtros de búsqueda.</p>
 
-                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Problema</h3>
-                <p class="mb-6">El desafío técnico principal era la <strong>degradación significativa del rendimiento de la aplicación</strong>, manifestada en tiempos de respuesta lentos y una experiencia de usuario deficiente. Tras una investigación inicial, identificamos que el cuello de botella principal residía en la base de datos. Específicamente, varias consultas SQL utilizadas para recuperar y filtrar productos, así como para generar informes de ventas, estaban tardando un tiempo excesivo en ejecutarse. Estas consultas carecían de índices adecuados y realizaban operaciones costosas como <code>JOIN</code> en tablas grandes sin optimización, lo que resultaba en escaneos completos de tablas y un alto consumo de recursos del servidor de base de datos.</p>
+                <h3>Problema</h3>
+                <p>El desafío técnico principal era la <strong>degradación significativa del rendimiento de la aplicación</strong>, manifestada en tiempos de respuesta lentos y una experiencia de usuario deficiente. Tras una investigación inicial, identificamos que el cuello de botella principal residía en la base de datos. Específicamente, varias consultas SQL utilizadas para recuperar y filtrar productos, así como para generar informes de ventas, estaban tardando un tiempo excesivo en ejecutarse. Estas consultas carecían de índices adecuados y realizaban operaciones costosas como <code>JOIN</code> en tablas grandes sin optimización, lo que resultaba en escaneos completos de tablas y un alto consumo de recursos del servidor de base de datos.</p>
 
-                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Acciones</h3>
-                <p class="mb-4">Para abordar este problema, implementamos una serie de acciones estructuradas:</p>
-                <ul class="list-disc pl-6 mb-6 space-y-2">
-                    <li><strong>Monitoreo y Perfilado de Consultas:</strong> Utilizamos herramientas de monitoreo de base de datos (como <code>pt-query-digest</code> y el log de consultas lentas de MySQL) para identificar las consultas más lentas y sus patrones de ejecución.</li>
-                    <li><strong>Análisis de Planes de Ejecución:</strong> Para cada consulta identificada, analizamos su plan de ejecución (<code>EXPLAIN</code> en MySQL) para entender cómo el motor de la base de datos estaba procesando la consulta.</li>
-                    <li><strong>Creación de Índices:</strong> Creamos índices compuestos y simples en las columnas más utilizadas en las cláusulas <code>WHERE</code>, <code>JOIN</code> y <code>ORDER BY</code>.</li>
-                    <li><strong>Refactorización de Consultas:</strong> Reescribimos algunas de las consultas más complejas para simplificar su lógica y reducir el número de <code>JOIN</code> innecesarios.</li>
-                    <li><strong>Implementación de Caché a Nivel de Aplicación:</strong> Implementamos una capa de caché utilizando Redis para secciones de la aplicación que mostraban datos que no cambiaban con frecuencia.</li>
-                    <li><strong>Pruebas de Rendimiento:</strong> Realizamos pruebas de carga y rendimiento para validar las mejoras y asegurarnos de que no se introdujeran regresiones.</li>
-                </ul>
+                <h3>Acciones (Post-Mortem Constructivo)</h3>
+                <p>Para abordar este problema, implementamos una serie de acciones estructuradas, siguiendo un enfoque de post-mortem constructivo para no solo resolver el incidente sino también prevenir futuras recurrencias:</p>
+                <ol>
+                    <li><strong>Monitoreo y Perfilado de Consultas (Detección y Diagnóstico):</strong> Utilizamos herramientas de monitoreo de base de datos (como <code>pt-query-digest</code> y el log de consultas lentas de MySQL) para identificar las consultas más lentas y sus patrones de ejecución. Esto nos permitió priorizar las optimizaciones y diagnosticar la causa raíz: la falta de índices y consultas ineficientes.</li>
+                    <li><strong>Análisis de Planes de Ejecución (Análisis de Causa Raíz - RCA):</strong> Para cada consulta identificada, analizamos su plan de ejecución (<code>EXPLAIN</code> en MySQL) para entender cómo el motor de la base de datos estaba procesando la consulta. Esto confirmó que la causa raíz era la ausencia de índices apropiados y la complejidad innecesaria de algunas uniones, llevando a escaneos completos de tablas.</li>
+                    <li><strong>Creación de Índices (Solución Inmediata y Preventiva):</strong> Basándonos en el análisis de los planes de ejecución, creamos índices compuestos y simples en las columnas más utilizadas en las cláusulas <code>WHERE</code>, <code>JOIN</code> y <code>ORDER BY</code>. Esta fue una medida correctiva directa que mejoró drásticamente los tiempos de búsqueda y filtrado.</li>
+                    <li><strong>Refactorización de Consultas (Mejora Continua):</strong> Reescribimos algunas de las consultas más complejas para simplificar su lógica, reducir el número de <code>JOIN</code> innecesarios y utilizar subconsultas o <code>CTE</code> (Common Table Expressions) de manera más efectiva. También nos aseguramos de que las consultas aprovecharan los nuevos índices, lo que representa una mejora en la calidad del código.</li>
+                    <li><strong>Implementación de Caché a Nivel de Aplicación (Medida Preventiva y de Escalabilidad):</strong> Para las secciones de la aplicación que mostraban datos que no cambiaban con frecuencia (como categorías de productos o listados populares), implementamos una capa de caché utilizando Redis. Esto redujo la necesidad de golpear la base de datos para cada solicitud, aliviando la carga y actuando como una medida preventiva contra futuros picos de tráfico.</li>
+                    <li><strong>Pruebas de Rendimiento (Verificación y Validación):</strong> Después de cada iteración de optimización, realizamos pruebas de carga y rendimiento para validar las mejoras y asegurarnos de que no se introdujeran regresiones. Esto fue crucial para confirmar la efectividad de las acciones tomadas.</li>
+                </ol>
 
-                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Aprendizajes</h3>
-                <p class="mb-4">Este incidente nos proporcionó varias lecciones valiosas:</p>
+                <h3>Aprendizajes</h3>
+                <p>Este incidente nos proporcionó varias lecciones valiosas:</p>
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-                    <ul class="list-disc pl-6 space-y-2">
-                        <li><strong>Importancia del Monitoreo Proactivo:</strong> El monitoreo continuo es crucial para identificar problemas antes de que afecten gravemente a los usuarios.</li>
-                        <li><strong>Diseño de Índices:</strong> Un diseño de índices bien pensado es fundamental para el rendimiento de la base de datos.</li>
-                        <li><strong>Optimización de Consultas:</strong> La refactorización de consultas puede tener un impacto masivo en el rendimiento.</li>
-                        <li><strong>Estrategias de Caché:</strong> La implementación estratégica de caché puede reducir significativamente la carga de la base de datos.</li>
-                        <li><strong>Ciclo de Feedback Continuo:</strong> La combinación de monitoreo, análisis, implementación y pruebas debe ser un ciclo continuo.</li>
+                    <ul>
+                        <li><strong>Importancia del Monitoreo Proactivo:</strong> El monitoreo continuo del rendimiento de la base de datos es crucial para identificar problemas antes de que afecten gravemente a los usuarios.</li>
+                        <li><strong>Diseño de Índices:</strong> Un diseño de índices bien pensado es fundamental para el rendimiento de la base de datos, y no solo se trata de añadir índices, sino de añadir los correctos en las columnas adecuadas.</li>
+                        <li><strong>Optimización de Consultas:</strong> La refactorización de consultas puede tener un impacto masivo en el rendimiento. Entender cómo funciona el optimizador de consultas de la base de datos es clave.</li>
+                        <li><strong>Estrategias de Caché:</strong> La implementación estratégica de caché puede reducir significativamente la carga de la base de datos y mejorar los tiempos de respuesta para datos estáticos o semi-estáticos.</li>
+                        <li><strong>Ciclo de Feedback Continuo:</strong> La combinación de monitoreo, análisis, implementación y pruebas debe ser un ciclo continuo en el desarrollo de software.</li>
                     </ul>
                 </div>
 
-                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Documentación de Control de Versiones</h3>
-                <p class="mb-4">Durante el proceso de optimización, cada cambio fue versionado cuidadosamente. A continuación, se presentan enlaces a commits relevantes que muestran las etapas clave de este trabajo:</p>
+                <h3>Relación entre Control de Versiones y Resolución de Incidentes</h3>
+                <p>El <strong>control de versiones</strong> (Git) fue una herramienta indispensable durante todo el proceso de resolución de este incidente. Cada acción, desde el perfilado inicial hasta la implementación de caché, se gestionó a través de commits atómicos y ramas de desarrollo. Esto permitió:</p>
+                <ul>
+                    <li><strong>Trazabilidad:</strong> Saber exactamente quién hizo qué cambio, cuándo y por qué, facilitando la auditoría y el aprendizaje post-incidente.</li>
+                    <li><strong>Reversión Segura:</strong> En caso de que una optimización introdujera un nuevo problema, podíamos revertir fácilmente a un estado anterior estable, minimizando el tiempo de inactividad.</li>
+                    <li><strong>Colaboración Eficiente:</strong> Múltiples desarrolladores podían trabajar en diferentes optimizaciones simultáneamente, fusionando sus cambios de manera controlada.</li>
+                    <li><strong>Documentación Viva:</strong> El historial de commits sirvió como una documentación detallada de la evolución de la solución, complementando el post-mortem formal.</li>
+                </ul>
+                <p>Esta práctica de versionado no solo es fundamental para el desarrollo de software, sino que se convierte en un pilar para la <strong>resolución efectiva y segura de incidentes</strong>, permitiendo una gestión de cambios robusta y una recuperación rápida ante cualquier eventualidad.</p>
+
+                <h3>Evidencia de Control de Versiones (Commits Relevantes)</h3>
+                <p>Durante el proceso de optimización, cada cambio fue versionado cuidadosamente. A continuación, se presentan enlaces a commits relevantes que muestran las etapas clave de este trabajo:</p>
                 <div class="space-y-2 mb-8">
-                    <a href="https://github.com/MartinMassud/technical-blog/commits/main" class="block text-blue-600 hover:underline">&rarr; Commit: Monitoreo y perfilado inicial</a>
-                    <a href="https://github.com/MartinMassud/technical-blog/commits/main" class="block text-blue-600 hover:underline">&rarr; Commit: Implementación de índices estratégicos</a>
-                    <a href="https://github.com/MartinMassud/technical-blog/commits/main" class="block text-blue-600 hover:underline">&rarr; Commit: Refactorización de consultas SQL críticas</a>
-                    <a href="https://github.com/MartinMassud/technical-blog/commits/main" class="block text-blue-600 hover:underline">&rarr; Commit: Integración de Redis para caché de aplicaciones</a>
+                    <a href="https://github.com/MartinMassud/technical-blog/commit/41f1aea" class="block text-blue-600 hover:underline">&rarr; <code>41f1aea</code> - perf: implementar monitoreo y perfilado de consultas lentas</a>
+                    <a href="https://github.com/MartinMassud/technical-blog/commit/b8347ef" class="block text-blue-600 hover:underline">&rarr; <code>b8347ef</code> - fix: optimizar índices en tablas de productos y transacciones</a>
+                    <a href="https://github.com/MartinMassud/technical-blog/commit/6c3932d" class="block text-blue-600 hover:underline">&rarr; <code>6c3932d</code> - refactor: simplificar consultas SQL complejas para reducir JOINs</a>
+                    <a href="https://github.com/MartinMassud/technical-blog/commit/a0fe2f8" class="block text-blue-600 hover:underline">&rarr; <code>a0fe2f8</code> - feat: integrar capa de caché con Redis para datos estáticos</a>
                 </div>
 
-                <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Reflexión sobre Feedback Radicalmente Sincero</h3>
+                <h3>Reflexión sobre Feedback Radicalmente Sincero</h3>
                 <blockquote class="italic border-l-4 border-gray-300 pl-4 py-2 text-gray-700 mb-6">
                     "Estamos perdiendo clientes por la lentitud, y parece que estamos atacando los síntomas (añadiendo más servidores) en lugar de la enfermedad (las consultas SQL)."
                 </blockquote>
-                <p class="mb-6">Aunque inicialmente fue un comentario difícil de escuchar, su <strong>sinceridad radical</strong> nos obligó a reevaluar nuestra estrategia. Nos dimos cuenta de que estábamos evitando profundizar en el código de la base de datos por la complejidad percibida, y su feedback nos empujó a confrontar la raíz del problema. Esta perspectiva externa fue el catalizador que nos llevó a cambiar el enfoque y, en última instancia, a resolver el problema de manera efectiva y sostenible.</p>
+                <p class="mb-6">Aunque inicialmente fue un comentario difícil de escuchar, su <strong>sinceridad radical</strong> nos obligó a reevaluar nuestra estrategia. Nos dimos cuenta de que estábamos evitando profundizar en el código de la base de datos por la complejidad percibida, y su feedback nos empujó a confrontar la raíz del problema. Esta perspectiva externa, aunque entregada con una franqueza que podría considerarse brusca, fue el catalizador que nos llevó a cambiar el enfoque, invertir tiempo en el perfilado de consultas y, en última instancia, a resolver el problema de manera efectiva y sostenible. Demostró que el feedback directo, incluso cuando es incómodo, es invaluable para el crecimiento y la resolución de problemas complejos en equipo.</p>
             </section>
         </article>
 
